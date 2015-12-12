@@ -1,18 +1,68 @@
 package sk
 
-func (b Board) IsValid() bool {
-	ok := true
+import (
+	"bytes"
+	"fmt"
+)
+
+type ValidationError struct {
+	Errors []string
+}
+
+func (e *ValidationError) addRowError(r int) {
+	e.Errors = append(e.Errors, fmt.Sprintf("row %d", r+1))
+}
+
+func (e *ValidationError) addColumnError(c int) {
+	e.Errors = append(e.Errors, fmt.Sprintf("column %d", c+1))
+}
+
+func (e *ValidationError) addSquareError(r, c int) {
+	loc := ""
+	e.Errors = append(e.Errors, fmt.Sprintf("square %s", loc))
+}
+
+func newValidationError(s ...string) *ValidationError {
+	return &ValidationError{Errors: s}
+}
+
+func (e *ValidationError) Error() string {
+	if e == nil {
+		return ""
+	}
+	all := e.Errors
+	b := &bytes.Buffer{}
+	for i := 0; i < len(all); i++ {
+		b.WriteString(all[i])
+		if i+1 < len(all) {
+			b.WriteString("; ")
+		}
+	}
+	return b.String()
+}
+
+func (b Board) Validate() error {
+	err := &ValidationError{}
 	for i := 0; i < 9; i++ {
-		ok = ok && b.isValidRow(i)
-		ok = ok && b.isValidColumn(i)
+		if !b.isValidRow(i) {
+			err.addRowError(i)
+			return err
+		}
+		if !b.isValidColumn(i) {
+			err.addColumnError(i)
+			return err
+		}
 	}
 	for r := 0; r < 3; r++ {
 		for c := 0; c < 3; c++ {
-			ok = ok && b.isValidSquare(r, c)
+			if !b.isValidSquare(r, c) {
+				err.addSquareError(r, c)
+				return err
+			}
 		}
 	}
 
-	return ok
+	return nil
 }
 
 func isValidSet(toValidate []int) bool {
