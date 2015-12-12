@@ -2,10 +2,12 @@ package sk
 
 type Board []int
 
-func BoardFromSlice(b []int) Board {
-	return Board(b)
+func NewBoard() Board {
+	return Board(make([]int, 9*9))
 }
 
-func (b Board) IsValid() bool {
-	return true
+func BoardFromSlice(b []int) Board {
+	myCopy := make([]int, 9*9)
+	copy(myCopy, b)
+	return Board(myCopy)
 }
